@@ -4,7 +4,7 @@ const mam1 = "bd1e5129-4432-426b-b945-170485e41850";
 const mam2=  "a099fcef-ec0c-4090-bf4c-b50194b11145";
 const name1="Mầm-01";
 const name2="Mầm-02";
-const boardId = 3;
+const boardId = 5;
 const datas = {
   boardId: boardId,
 };
@@ -28,31 +28,68 @@ function join(datas,token,name){
       }
     });
 }
+
 function getBoard(boardId,name,token) {
     var boardUrl = 'https://api-zarena.zinza.com.vn/api/boards/' + boardId;
     axios.get(boardUrl)
     .then((response) => {
-      profile= response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' && item.properties.name === name);
-      bot= response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' && item.properties.name === name);
+      // home me
+      profile = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' && item.properties.name === name);
+      
+      // bot me
+      bot = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' && item.properties.name === name);
+      
+      // bot friend 
+      friend = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' 
+      && item.properties.teamId === bot[0].properties.teamId && item.properties.name !== name);
+      
+      // home friend
+      friendHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' &&
+      item.properties.teamId === bot[0].properties.teamId && item.properties.name !== name);
+      // thong tin bot ke dich 
+      enemys = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' 
+      && item.properties.teamId !== bot[0].properties.teamId);
+      
+      // thong tin home bot ke dich
+      enemysHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' 
+      && item.properties.teamId !== bot[0].properties.teamId);
+
+      // list coint on board
       coinGames=response.data.gameObjects.filter(item=> item && item.type === 'CoinGameObject');
+      //arr point coin
       var ArrCoins = coinGames.map(coin => ({ x: coin.position.x, y: coin.position.y, point: coin.properties.points }));
+      // point home me
       xBase=profile[0].position.x;
       yBase=profile[0].position.y;
+      // point bot me
       xBot=bot[0].position.x;
       yBot=bot[0].position.y;
+      // coins me
       coins=bot[0].properties.coins;
-      var test =0;
-      test= goHome(coins,xBase,yBase,xBot,yBot,coinGames,ArrCoins,token);
-      //mang chua toa do coin
-      console.log(1);
-      if(test===0){
-        var locationCoin=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token); 
-        var run=  handle(xBot,yBot,locationCoin.x,locationCoin.y);
-        move(token,run);
+      var run="";
+      if(coins === 5){
+      run= handle(xBot,yBot,xBase , yBase);
       }
+      else if(coins > 0 && coins < 5){
+        ArrCoins.push({ x: xBase, y: yBase, point: 0 });
+        var hasFlag = response.data.gameObjects.find(item=>item.type === 'ResetButtonGameObject')  !== undefined;
+        if(hasFlag){
+          ArrCoins.push({ x: 7, y: 7, point: 0 });
+        }
+        var locationCoin=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
+        run=  handle(xBot,yBot,locationCoin.x,locationCoin.y);
+      }
+      else{
+        var locationCoin=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
+        run=  handle(xBot,yBot,locationCoin.x,locationCoin.y);
+      }
+
+      /// xet run la buoc di tiep theo de toi uu chien thuat
+
+      move(token,run);
       setTimeout(() => {
           getBoard(boardId, name, token);
-      }, 1000);
+      }, 800);
     })
     .catch((error)=>{
         console.log("Error  bot:", error);
@@ -63,7 +100,6 @@ function move(token, direction) {
 
   axios.post(Url, { direction })
     .then((response) => {
-      console.log(profile.data);
       // Xử lý thành công
     })
     .catch((error) => {
@@ -74,7 +110,6 @@ function move(token, direction) {
 function neighbor(x,y,xBase,yBase,coinGames,coins){
   let closestDistance = Number.MAX_VALUE;
   let closestPoint = null;
-  console.log(coins);
   for (const coinGame of coinGames) {
     if(coinGame.point + coins <= 5){
       const distance = Math.sqrt((x - coinGame.x) ** 2 + (y - coinGame.y) ** 2);
@@ -83,11 +118,10 @@ function neighbor(x,y,xBase,yBase,coinGames,coins){
           closestPoint = coinGame;
       }
     }
-   
   }
-  if(coins < 5 && closestPoint == null){
-      return {x: xBase,y:yBase, point:0 }
-    }
+  if(closestPoint == null){
+      return {x: xBase,y: yBase, point: 0 }
+  }
   return closestPoint;
 }
 
@@ -106,12 +140,6 @@ function handle(x,y,xGo,yGo){
   }
 }
 
-function goHome(coins,xBase,yBase,xBot,yBot,coinGames,ArrCoins,token){
-  if(coins ===5 ){
-  var moves= handle(xBot,yBot,xBase , yBase);
-  move(token,moves);
-   return 1;
-  }
-  return 0;
- 
-}
+
+
+
