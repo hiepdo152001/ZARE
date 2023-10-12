@@ -1,10 +1,11 @@
-const axios = require("axios");
+import axios from "axios";
+import Config from "./config.js";
 
 const mam1 = "bd1e5129-4432-426b-b945-170485e41850";
 const mam2=  "a099fcef-ec0c-4090-bf4c-b50194b11145";
 const name1="Mầm-01";
 const name2="Mầm-02";
-const boardId = 5;
+const boardId = Config.BOARD_ID;
 const datas = {
   boardId: boardId,
 };
@@ -37,21 +38,21 @@ function getBoard(boardId,name,token) {
       profile = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' && item.properties.name === name);
       
       // bot me
-      bot = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' && item.properties.name === name);
+      var bot = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' && item.properties.name === name);
       
       // bot friend 
-      friend = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' 
+      var friend = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' 
       && item.properties.teamId === bot[0].properties.teamId && item.properties.name !== name);
       
       // home friend
-      friendHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' &&
+      var friendHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' &&
       item.properties.teamId === bot[0].properties.teamId && item.properties.name !== name);
       // thong tin bot ke dich 
-      enemys = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' 
+      var enemys = response.data.gameObjects.filter(item => item && item.type === 'BotGameObject' 
       && item.properties.teamId !== bot[0].properties.teamId);
       
       // thong tin home bot ke dich
-      enemysHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' 
+      var enemysHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' 
       && item.properties.teamId !== bot[0].properties.teamId);
 
       // list coint on board
@@ -59,13 +60,13 @@ function getBoard(boardId,name,token) {
       //arr point coin
       var ArrCoins = coinGames.map(coin => ({ x: coin.position.x, y: coin.position.y, point: coin.properties.points }));
       // point home me
-      xBase=profile[0].position.x;
-      yBase=profile[0].position.y;
+      var xBase=profile[0].position.x;
+      var yBase=profile[0].position.y;
       // point bot me
-      xBot=bot[0].position.x;
-      yBot=bot[0].position.y;
+      var xBot=bot[0].position.x;
+      var yBot=bot[0].position.y;
       // coins me
-      coins=bot[0].properties.coins;
+      var coins=bot[0].properties.coins;
       var run="";
       if(coins === 5){
       run= handle(xBot,yBot,xBase , yBase);
