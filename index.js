@@ -1,10 +1,12 @@
+require('dotenv').config();
+
 const axios = require("axios");
 
 const mam1 = "bd1e5129-4432-426b-b945-170485e41850";
 const mam2 = "a099fcef-ec0c-4090-bf4c-b50194b11145";
 const name1 = "Mầm-01";
 const name2 = "Mầm-02";
-const boardId = 5;
+const boardId = process.env.BOARD_ID;
 const datas = {
   boardId: boardId,
 };
