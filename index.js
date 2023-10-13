@@ -3,6 +3,8 @@ import Config from "./config.js";
 
 const mam1 = "bd1e5129-4432-426b-b945-170485e41850";
 const mam2=  "a099fcef-ec0c-4090-bf4c-b50194b11145";
+const test1="a9002808-131c-4a80-9229-76608a3e9220";
+const test2="92460a6d-a94d-4812-824a-dda25819ad60";
 const name1="Mầm-01";
 const name2="Mầm-02";
 const boardId = Config.BOARD_ID;
@@ -11,8 +13,8 @@ const datas = {
 };
 var profile=[];
 var coinGames=[];
-join(datas,mam1,name1);
-join(datas,mam2,name2);
+join(datas,test1,name1);
+join(datas,test2,name2);
 
 
 function join(datas,token,name){
