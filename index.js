@@ -7,14 +7,16 @@ const test1="a9002808-131c-4a80-9229-76608a3e9220";
 const test2="92460a6d-a94d-4812-824a-dda25819ad60";
 const name1="Mầm-01";
 const name2="Mầm-02";
+const nametest1="[Test] Mầm-01";
+const nametest2="[Test] Mầm-02";
 const boardId = Config.BOARD_ID;
 const datas = {
   boardId: boardId,
 };
 var profile=[];
 var coinGames=[];
-join(datas,test1,name1);
-join(datas,test2,name2);
+join(datas,mam1,name1);
+join(datas,mam2,name2);
 
 
 function join(datas,token,name){
@@ -70,6 +72,7 @@ function getBoard(boardId,name,token) {
       // coins me
       var coins=bot[0].properties.coins;
       var run="";
+      //neu coins ===5 ve nha.
       if(coins === 5){
       run= handle(xBot,yBot,xBase , yBase);
       }
@@ -86,8 +89,19 @@ function getBoard(boardId,name,token) {
         var locationCoin=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
         run=  handle(xBot,yBot,locationCoin.x,locationCoin.y);
       }
-
+      
+      // run up down left right
       /// xet run la buoc di tiep theo de toi uu chien thuat
+      // run up
+
+      // xet xem toa do cua diem tiep theo la bn {x;y}
+      // lay toa do khoanh vung 
+      // xet tung case
+      // case 1: neu gan cua or vao cua luon -> cua xem nen di vao cua khong
+      // case dich: // neu bot o nha minh thi di chuyen sang gui vang nha ban
+            // neu ca 2 bot deu o 2 nha minh thi minh di chuyen den 2 nha cua no. sau call board ltuc check
+            // no di chuyen ra chua. neu di chuyen roi  
+       
 
       move(token,run);
       setTimeout(() => {
