@@ -1,5 +1,6 @@
 import axios from "axios";
 import Config from "./config.js";
+import { logger } from "./logger.js";
 
 const mam1 = "bd1e5129-4432-426b-b945-170485e41850";
 const mam2=  "a099fcef-ec0c-4090-bf4c-b50194b11145";
@@ -156,7 +157,3 @@ function handle(x,y,xGo,yGo){
     return "DOWN";
   }
 }
-
-
-
-
