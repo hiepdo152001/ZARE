@@ -81,7 +81,7 @@ async function joinBoard(datas, nameBot, tokenBot) {
 }
 
 /**
- * Function join game board.
+ * Function start run bot.
  *
  * @param {string} boardId
  * @param {string} nameBot
@@ -103,6 +103,7 @@ async function startAction(boardId, nameBot, tokenBot) {
         baseObjectData.baseOfSecondEnemyBot,
       ];
 
+      // get bot location
       const botObjectData = await scout.getBotObjectInfo(response, nameBot);
       const currentBotInfo = botObjectData.currentBotInfo;
       const teamateBotInfo = botObjectData.teamateBotInfo;
@@ -111,8 +112,13 @@ async function startAction(boardId, nameBot, tokenBot) {
       const myTeamScore = botObjectData.myTeamScore;
       const enemyTeamScore = botObjectData.enemyTeamScore;
 
+      // get coin location
       const coinObjectData = await scout.getCoinObjectInfo(response);
-      logger.info(JSON.stringify(coinObjectData));
+
+      // get gate location
+      const gateObjectData = await scout.getGateObject(response);
+      const testData = await scout.checkEnemyInHome(3,3,3,3);
+      logger.info(JSON.stringify(testData));
 
       /** move */
 

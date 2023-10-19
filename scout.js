@@ -1,6 +1,7 @@
 import axios from "axios";
 import Config from "./config.js";
 import { logger } from "./logger.js";
+import { performance } from "perf_hooks";
 
 /**
  * Function get bot object.
@@ -8,8 +9,7 @@ import { logger } from "./logger.js";
 async function getBotObjectInfo(response, nameCurrentBot) {
   const currentBotInfo = response.data.gameObjects.filter(
     (item) =>
-      item.type === "BotGameObject" &&
-      item.properties.name === nameCurrentBot
+      item.type === "BotGameObject" && item.properties.name === nameCurrentBot
   );
 
   const teamateBotInfo = response.data.gameObjects.filter(
@@ -54,8 +54,7 @@ async function getBotObjectInfo(response, nameCurrentBot) {
 async function getBaseObjectInfo(response, nameCurrentBot) {
   const currentBaseInfo = response.data.gameObjects.filter(
     (item) =>
-      item.type === "BaseGameObject" &&
-      item.properties.name === nameCurrentBot
+      item.type === "BaseGameObject" && item.properties.name === nameCurrentBot
   );
 
   const teamateBaseInfo = response.data.gameObjects.filter(
@@ -84,12 +83,12 @@ async function getBaseObjectInfo(response, nameCurrentBot) {
 
 /**
  * Function get coin object.
- * 
+ *
  * @param {Array} response
  * @return {object}
  */
 async function getCoinObjectInfo(response) {
-   const coinObject = response.data.gameObjects.filter(
+  const coinObject = response.data.gameObjects.filter(
     (item) => item.type === "CoinGameObject"
   );
 
@@ -103,12 +102,71 @@ async function getCoinObjectInfo(response) {
 }
 
 /**
- * Function main.
+ * Function get gate object.
+ *
+ * @param {Array} response
+ * @return {object}
  */
-async function getGateObject() {}
+async function getGateObject(response) {
+  const gateObject = response.data.gameObjects.filter(
+    (item) => item.type === "GateGameObject"
+  );
+
+  return gateObject;
+}
+
+/**
+ * Function get surround coordinates of object.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @return {object}
+ */
+async function getSurroundingCoordinates(x, y) {
+  const surroundingCoordinates = [];
+
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      if (dx !== 0 || dy !== 0) {
+        const newX = x + dx;
+        const newY = y + dy;
+
+        if (newX >= 0 && newX < 15 && newY >= 0 && newY < 15) {
+          surroundingCoordinates.push({ x: newX, y: newY });
+        }
+      }
+    }
+  }
+
+  return surroundingCoordinates;
+}
+
+/**
+ * Function get surround coordinates of object.
+ *
+ * @param {number} xEnemy
+ * @param {number} yEnemy
+ * @param {number} xBase
+ * @param {number} yBase
+ * @return {boolean}
+ */
+async function checkEnemyInHome(xEnemy, yEnemy, xBase, yBase) {
+  const coordinateSurroundBase = await getSurroundingCoordinates(xBase, yBase);
+  const coordinateBase = { x: xBase, y: yBase };
+
+  coordinateSurroundBase.push(coordinateBase);
+
+  const result = coordinateSurroundBase.find(
+    ({ x, y }) => x === xEnemy && y === yEnemy
+  );
+
+  return result;
+}
 
 export default {
   getBaseObjectInfo,
   getBotObjectInfo,
   getCoinObjectInfo,
+  getGateObject,
+  checkEnemyInHome,
 };
