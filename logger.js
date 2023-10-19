@@ -15,7 +15,7 @@ export const logger = createLogger({
   transports: [
     new transports.Console(), // Log to the console
     new transports.File({
-      filename: 'demo.log',
+      filename: 'zarena.log',
       maxsize: 5242880, // 5MB
       maxFiles: 5, // Rotate to a new file after 5MB
     }) // Log to a file
