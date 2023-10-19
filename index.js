@@ -1,5 +1,7 @@
 import axios from "axios";
 import Config from "./config.js";
+import  Queue  from 'queue-fifo';
+// var door= require('./door.js');
 
 const mam1 = "bd1e5129-4432-426b-b945-170485e41850";
 const mam2=  "a099fcef-ec0c-4090-bf4c-b50194b11145";
@@ -59,10 +61,15 @@ function getBoard(boardId,name,token) {
       var enemysHome = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' 
       && item.properties.teamId !== bot[0].properties.teamId);
 
+      // canh cong
+      var gates= response.data.gameObjects.filter(item => item && item.type === 'GateGameObject');
+
       // list coint on board
       coinGames=response.data.gameObjects.filter(item=> item && item.type === 'CoinGameObject');
       //arr point coin
       var ArrCoins = coinGames.map(coin => ({ x: coin.position.x, y: coin.position.y, point: coin.properties.points }));
+
+      var ArrEnemy= enemys.map(enemy=> ({x: enemy.position.x, y: enemy.position.y, point: enemy.properties.coins, }));
       // point home me
       var xBase=profile[0].position.x;
       var yBase=profile[0].position.y;
@@ -72,9 +79,10 @@ function getBoard(boardId,name,token) {
       // coins me
       var coins=bot[0].properties.coins;
       var run="";
+      var location=null;
       //neu coins ===5 ve nha.
       if(coins === 5){
-      run= handle(xBot,yBot,xBase , yBase);
+        location={x: xBase,y: yBase, point: 0 }
       }
       else if(coins > 0 && coins < 5){
         ArrCoins.push({ x: xBase, y: yBase, point: 0 });
@@ -82,14 +90,26 @@ function getBoard(boardId,name,token) {
         if(hasFlag){
           ArrCoins.push({ x: 7, y: 7, point: 0 });
         }
-        var locationCoin=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
-        run=  handle(xBot,yBot,locationCoin.x,locationCoin.y);
+        location=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
       }
       else{
-        var locationCoin=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
-        run=  handle(xBot,yBot,locationCoin.x,locationCoin.y);
+        location=neighbor(xBot,yBot,xBase,yBase,ArrCoins,coins,token);
       }
+      var start={x: xBot,y: yBot, point: bot[0].properties.coins };
+      var end=location;
+      // var end= {x: 3,y: 3, point: bot[0].properties.coins };
       
+      //thuat toan tim duong di hop ly
+      var path=bfs(start,end,ArrEnemy);
+      var location=path.shift();
+
+      console.log(path);
+
+      run=  handle(xBot,yBot,location.x,location.y);
+      
+      // var next = locationNext(xBot,yBot,run);
+      // door.handle(next,)
+
       // run up down left right
       /// xet run la buoc di tiep theo de toi uu chien thuat
       // run up
@@ -157,6 +177,71 @@ function handle(x,y,xGo,yGo){
   }
 }
 
+// function locationNext(x,y,run){
+//   switch(run){
+//     case "RUN":
+//       y=y-1;
+//       break;
+//     case "DOWN":
+//       y=y+1;
+//       break;
+//     case "LEFT":
+//       x=x-1;
+//       break;
+//     case "RIGHT":
+//       x=x+1;
+//       break;
+//   }
+//   return {x:x ,y:y};
+// }
+
+function bfs(start, end, ArrEnemy) {
+  const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const rows = 15;
+  const cols = 15;
+  const visited = new Array(rows).fill().map(() => new Array(cols).fill(false));
+  const queue = new Queue();
+
+  queue.enqueue({ current: start, path: [] });
+
+  while (!queue.isEmpty()) {
+      const { current, path } = queue.dequeue();
+      const { x, y, point } = current;
+
+      if (x === end.x && y === end.y) {
+          return path; // Tìm thấy đường đi, trả về nó
+      }
+
+      for (const [dx, dy] of directions) {
+          const new_x = x + dx;
+          const new_y = y + dy;
+          console.log(new_x,new_y);
+          if (new_x >= 0 && new_x < rows && new_y >= 0 && new_y < cols && !visited[new_x][new_y]) {
+              if (ArrEnemy.some(enemy => enemy.x === new_x && enemy.y === new_y)) {
+                  if (start.point <1) {
+                      visited[new_x][new_y] = true;
+                      const new_path = [...path, { x: new_x, y: new_y, point: 0 }];
+                      queue.enqueue({ current: { x: new_x, y: new_y, point: 0 }, path: new_path });
+                  }
+              } else {
+                  visited[new_x][new_y] = true;
+                  const new_path = [...path, { x: new_x, y: new_y, point }];
+                  queue.enqueue({ current: { x: new_x, y: new_y, point }, path: new_path });
+              }
+          }
+      }
+  }
+
+  return null; // Không tìm thấy đường đi
+}
+function skill(){
+
+
+}
+
+function friend(){
+
+}
 
 
 
