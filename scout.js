@@ -150,7 +150,7 @@ async function getSurroundingCoordinates(x, y) {
  * @param {number} yBase
  * @return {boolean}
  */
-async function checkEnemyInHome(xEnemy, yEnemy, xBase, yBase) {
+async function checkEnemyInBase(xEnemy, yEnemy, xBase, yBase) {
   const coordinateSurroundBase = await getSurroundingCoordinates(xBase, yBase);
   const coordinateBase = { x: xBase, y: yBase };
 
@@ -160,7 +160,47 @@ async function checkEnemyInHome(xEnemy, yEnemy, xBase, yBase) {
     ({ x, y }) => x === xEnemy && y === yEnemy
   );
 
-  return result;
+  if (result === undefined) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Function two enemy in two base.
+ *
+ * @param {number} xEnemy
+ * @param {number} yEnemy
+ * @param {number} xBase
+ * @param {number} yBase
+ * @return {boolean}
+ */
+async function checkTwoEnemyInTwoBase(
+  xFirstEnemy,
+  yFirstEnemy,
+  xSecondEnemy,
+  ySecondEnemy,
+  xFirstBase,
+  yFirstBase,
+  xSecondBase,
+  ySecondBase
+) {
+  if (
+    checkEnemyInBase(xFirstEnemy, yFirstEnemy, xFirstBase, yFirstBase) &&
+    checkEnemyInBase(xSecondEnemy, ySecondEnemy, xSecondBase, ySecondBase)
+  ) {
+    return true;
+  }
+
+  if (
+    checkEnemyInBase(xFirstEnemy, yFirstEnemy, xSecondBase, ySecondBase) &&
+    checkEnemyInBase(xSecondEnemy, ySecondEnemy, xFirstBase, yFirstBase)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 export default {
@@ -168,5 +208,6 @@ export default {
   getBotObjectInfo,
   getCoinObjectInfo,
   getGateObject,
-  checkEnemyInHome,
+  checkEnemyInBase,
+  checkTwoEnemyInTwoBase,
 };

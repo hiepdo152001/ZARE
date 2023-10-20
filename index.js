@@ -96,19 +96,17 @@ async function startAction(boardId, nameBot, tokenBot) {
       const baseObjectData = await scout.getBaseObjectInfo(response, nameBot);
       const baseOfCurrentBot = baseObjectData.baseOfCurrentBot;
       const baseOfTeamateBot = baseObjectData.baseOfTeamateBot;
-      const baseOfFirstEnemyBot = baseObjectData.baseOfFirstEnemyBot;
-      const baseOfSecondEnemyBot = baseObjectData.baseOfSecondEnemyBot;
-      const enemyBases = [
-        baseObjectData.baseOfFirstEnemyBot,
-        baseObjectData.baseOfSecondEnemyBot,
-      ];
 
-      // get bot location
+      // get bot info
       const botObjectData = await scout.getBotObjectInfo(response, nameBot);
       const currentBotInfo = botObjectData.currentBotInfo;
       const teamateBotInfo = botObjectData.teamateBotInfo;
       const firstEnemyBotInfo = botObjectData.firstEnemyBotInfo;
       const secondEnemyBotInfo = botObjectData.secondEnemyBotInfo;
+      const enemiesBotInfo = [
+        botObjectData.firstEnemyBotInfo,
+        botObjectData.secondEnemyBotInfo,
+      ];
       const myTeamScore = botObjectData.myTeamScore;
       const enemyTeamScore = botObjectData.enemyTeamScore;
 
@@ -117,16 +115,100 @@ async function startAction(boardId, nameBot, tokenBot) {
 
       // get gate location
       const gateObjectData = await scout.getGateObject(response);
-      const testData = await scout.checkEnemyInHome(3,3,3,3);
-      logger.info(JSON.stringify(testData));
 
-      /** move */
+      // logger.info(JSON.stringify(enemiesBotInfo));
 
-      // move(token, run);
-      // logger.info(`${name} move ${run}`);
-      // setTimeout(() => {
-      //   getBoard(boardId, name, token);
-      // }, 800);
+      // TEST CASE
+      // if (Config.TEST_MODE === true) {
+      //   if (nameBot === "Mầm-01") {
+      //     var run = handle(
+      //       currentBotInfo.position.x,
+      //       currentBotInfo.position.y,
+      //       4,
+      //       14
+      //     );
+      //     /** move */
+      //     move(tokenBot, run);
+      //     logger.info(`${nameBot} move ${run}`);
+      //     setTimeout(() => {
+      //       startAction(boardId, nameBot, tokenBot);
+      //     }, 1000);
+      //   }
+
+      //   if (nameBot === "Mầm-02") {
+      //     var run = handle(
+      //       currentBotInfo.position.x,
+      //       currentBotInfo.position.y,
+      //       5,
+      //       1
+      //     );
+      //     /** move */
+      //     move(tokenBot, run);
+      //     logger.info(`${nameBot} move ${run}`);
+      //     setTimeout(() => {
+      //       startAction(boardId, nameBot, tokenBot);
+      //     }, 1000);
+      //   }
+
+      //   if (nameBot === "[Test] Mầm-01") {
+      //     var targetEnemy = enemiesBotInfo.find(
+      //       ({ properties }) => properties.name === "Mầm-02"
+      //     );
+      //     var run = handle(
+      //       currentBotInfo.position.x,
+      //       currentBotInfo.position.y,
+      //       targetEnemy.properties.base.x,
+      //       targetEnemy.properties.base.y
+      //     );
+      //     /** move */
+      //     move(tokenBot, run);
+      //     logger.info(`${nameBot} move ${run}`);
+      //     setTimeout(() => {
+      //       startAction(boardId, nameBot, tokenBot);
+      //     }, 1000);
+      //   }
+
+      //   if (nameBot === "[Test] Mầm-02") {
+      //     var targetEnemy = enemiesBotInfo.find(
+      //       ({ properties }) => properties.name === "Mầm-01"
+      //     );
+      //     var run = handle(
+      //       currentBotInfo.position.x,
+      //       currentBotInfo.position.y,
+      //       targetEnemy.properties.base.x,
+      //       targetEnemy.properties.base.y
+      //     );
+      //     /** move */
+      //     move(tokenBot, run);
+      //     logger.info(`${nameBot} move ${run}`);
+      //     setTimeout(() => {
+      //       startAction(boardId, nameBot, tokenBot);
+      //     }, 1000);
+      //   }
+      // }
+
+      // HANDLE TWO ENEMY IN HOME
+
+      if (
+        scout.checkTwoEnemyInTwoBase(
+          firstEnemyBotInfo.position.x,
+          firstEnemyBotInfo.position.y,
+          secondEnemyBotInfo.position.x,
+          secondEnemyBotInfo.position.y,
+          currentBotInfo.properties.base.x,
+          currentBotInfo.properties.base.y,
+          teamateBotInfo.properties.base.x,
+          teamateBotInfo.properties.base.y
+        )
+      ) {
+        await handleEnemyInTwoBase(
+          tokenBot,
+          nameBot,
+          currentBotInfo,
+          firstEnemyBotInfo,
+          secondEnemyBotInfo
+        );
+      }
     })
     .catch((error) => {
       logger.error(`Error bot: ${error}`);
@@ -144,4 +226,51 @@ function move(token, direction) {
     .catch((error) => {
       // Xử lý lỗi
     });
+}
+
+function handle(x, y, xGo, yGo) {
+  if (x > xGo) {
+    return "LEFT";
+  } else if (x < xGo) {
+    return "RIGHT";
+  } else if (y > yGo) {
+    return "UP";
+  } else if (y < yGo) {
+    return "DOWN";
+  }
+}
+
+async function handleEnemyInTwoBase(
+  tokenBot,
+  nameBot,
+  currentBotInfo,
+  firstEnemyBotInfo,
+  secondEnemyBotInfo
+) {
+  if (currentBotInfo.properties.name === "Mầm-01") {
+    var run = handle(
+      currentBotInfo.position.x,
+      currentBotInfo.position.y,
+      firstEnemyBotInfo.properties.base.x,
+      firstEnemyBotInfo.properties.base.y
+    );
+    move(tokenBot, run);
+    logger.info(`${nameBot} move ${run}`);
+    setTimeout(() => {
+      startAction(boardId, nameBot, tokenBot);
+    }, 1000);
+  }
+  if (currentBotInfo.properties.name === "Mầm-02") {
+    var run = handle(
+      currentBotInfo.position.x,
+      currentBotInfo.position.y,
+      secondEnemyBotInfo.properties.base.x,
+      secondEnemyBotInfo.properties.base.y
+    );
+    move(tokenBot, run);
+    logger.info(`${nameBot} move ${run}`);
+    setTimeout(() => {
+      startAction(boardId, nameBot, tokenBot);
+    }, 1000);
+  }
 }
