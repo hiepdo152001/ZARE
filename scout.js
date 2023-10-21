@@ -12,7 +12,7 @@ async function getBotObjectInfo(response, nameCurrentBot) {
       item.type === "BotGameObject" && item.properties.name === nameCurrentBot
   );
 
-  const teamateBotInfo = response.data.gameObjects.filter(
+  const teammateBotInfo = response.data.gameObjects.filter(
     (item) =>
       item.type === "BotGameObject" &&
       item.properties.teamId === currentBotInfo[0].properties.teamId &&
@@ -20,7 +20,7 @@ async function getBotObjectInfo(response, nameCurrentBot) {
   );
 
   const myTeamScore =
-    currentBotInfo[0].properties.score + teamateBotInfo[0].properties.score;
+    currentBotInfo[0].properties.score + teammateBotInfo[0].properties.score;
 
   const enemiesBotInfo = response.data.gameObjects.filter(
     (item) =>
@@ -36,7 +36,7 @@ async function getBotObjectInfo(response, nameCurrentBot) {
 
   return {
     currentBotInfo: currentBotInfo[0],
-    teamateBotInfo: teamateBotInfo[0],
+    teammateBotInfo: teammateBotInfo[0],
     myTeamScore: myTeamScore,
     firstEnemyBotInfo: firstEnemy,
     secondEnemyBotInfo: secondEnemy,
@@ -57,7 +57,7 @@ async function getBaseObjectInfo(response, nameCurrentBot) {
       item.type === "BaseGameObject" && item.properties.name === nameCurrentBot
   );
 
-  const teamateBaseInfo = response.data.gameObjects.filter(
+  const teammateBaseInfo = response.data.gameObjects.filter(
     (item) =>
       item.type === "BaseGameObject" &&
       item.properties.teamId === currentBaseInfo[0].properties.teamId &&
@@ -75,7 +75,7 @@ async function getBaseObjectInfo(response, nameCurrentBot) {
 
   return {
     baseOfCurrentBot: currentBaseInfo[0],
-    baseOfTeamateBot: teamateBaseInfo[0],
+    baseOfTeammateBot: teammateBaseInfo[0],
     baseOfFirstEnemyBot: firstEnemyBaseInfo,
     baseOfSecondEnemyBot: secondEnemyBaseInfo,
   };
