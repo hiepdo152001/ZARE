@@ -40,6 +40,7 @@ function getBoard(boardId,name,token) {
     var boardUrl = 'https://api-zarena.zinza.com.vn/api/boards/' + boardId;
     axios.get(boardUrl)
     .then((response) => {
+      
       // home me
       profile = response.data.gameObjects.filter(item => item && item.type === 'BaseGameObject' && item.properties.name === name);
       
@@ -80,6 +81,7 @@ function getBoard(boardId,name,token) {
       var coins=bot[0].properties.coins;
       var run="";
       var location=null;
+
       //neu coins ===5 ve nha.
       if(coins === 5){
         location={x: xBase,y: yBase, point: 0 }
@@ -100,12 +102,44 @@ function getBoard(boardId,name,token) {
       // var end= {x: 3,y: 3, point: bot[0].properties.coins };
       
       //thuat toan tim duong di hop ly
-      var path=bfs(start,end,ArrEnemy);
-      var location=path.shift();
-
-      console.log(path);
-
-      run=  handle(xBot,yBot,location.x,location.y);
+      // var path=bfs(start,end,ArrEnemy);
+      // if (path !== null && path.length > 0) {
+      //   var location = path.shift();
+      // } 
+      // kiem tra toa do do co phai la dich hay khong 
+      for (const enemy of ArrEnemy) {
+        // bot lien ke voi minh thi tien hanh chien
+        if((Math.abs(xBot - enemy.x) === 1 && yBot === enemy.y) 
+        || (Math.abs(yBot - enemy.y) === 1 && xBot === enemy.x))
+        {
+          if(coins < enemy.point ){
+            location = enemy;
+            break;
+          }
+         
+        }
+        // kiem tra toa do bot de ne 
+        else if (Math.abs(location.x - enemy.x) <= 1 && Math.abs(location.y - enemy.y) <= 1) {
+          location={x:xBot, y:yBot};
+          break;
+        }
+      }
+        run =  handle(xBot,yBot,location.x,location.y);
+        if(run !== null){
+          setTimeout(() => {
+            move(token,run)
+            getBoard(boardId, name, token);
+          }, 800);
+        }
+        else{
+          setTimeout(() => {
+           
+            getBoard(boardId, name, token);
+          }, 1);
+        }
+        
+        
+      
       
       // var next = locationNext(xBot,yBot,run);
       // door.handle(next,)
@@ -123,21 +157,21 @@ function getBoard(boardId,name,token) {
             // no di chuyen ra chua. neu di chuyen roi  
        
 
-      move(token,run);
-      setTimeout(() => {
-          getBoard(boardId, name, token);
-      }, 800);
+      
     })
+
     .catch((error)=>{
         console.log("Error  bot:", error);
     })
 }
+
+
 function move(token, direction) {
   const Url = 'https://api-zarena.zinza.com.vn/api/bots/' + token + '/move';
 
   axios.post(Url, { direction })
     .then((response) => {
-      // Xử lý thành công
+      
     })
     .catch((error) => {
       // Xử lý lỗi
@@ -175,6 +209,9 @@ function handle(x,y,xGo,yGo){
   else if(y < yGo){
     return "DOWN";
   }
+  else{
+    return "";
+  }
 }
 
 // function locationNext(x,y,run){
@@ -209,16 +246,16 @@ function bfs(start, end, ArrEnemy) {
       const { x, y, point } = current;
 
       if (x === end.x && y === end.y) {
+
           return path; // Tìm thấy đường đi, trả về nó
       }
 
       for (const [dx, dy] of directions) {
           const new_x = x + dx;
           const new_y = y + dy;
-          console.log(new_x,new_y);
           if (new_x >= 0 && new_x < rows && new_y >= 0 && new_y < cols && !visited[new_x][new_y]) {
               if (ArrEnemy.some(enemy => enemy.x === new_x && enemy.y === new_y)) {
-                  if (start.point <1) {
+                  if (start.point < 1) {
                       visited[new_x][new_y] = true;
                       const new_path = [...path, { x: new_x, y: new_y, point: 0 }];
                       queue.enqueue({ current: { x: new_x, y: new_y, point: 0 }, path: new_path });
