@@ -122,7 +122,7 @@ async function getGateObject(response) {
  * @param {number} y
  * @return {object}
  */
-async function getSurroundingCoordinates(x, y) {
+function getSurroundingCoordinates(x, y) {
   const surroundingCoordinates = [];
 
   for (let dx = -1; dx <= 1; dx++) {
@@ -150,8 +150,8 @@ async function getSurroundingCoordinates(x, y) {
  * @param {number} yBase
  * @return {boolean}
  */
-async function checkEnemyInBase(xEnemy, yEnemy, xBase, yBase) {
-  const coordinateSurroundBase = await getSurroundingCoordinates(xBase, yBase);
+function checkEnemyInBase(xEnemy, yEnemy, xBase, yBase) {
+  const coordinateSurroundBase = getSurroundingCoordinates(xBase, yBase);
   const coordinateBase = { x: xBase, y: yBase };
 
   coordinateSurroundBase.push(coordinateBase);
@@ -176,7 +176,7 @@ async function checkEnemyInBase(xEnemy, yEnemy, xBase, yBase) {
  * @param {number} yBase
  * @return {boolean}
  */
-async function checkTwoEnemyInTwoBase(
+function checkTwoEnemyInTwoBase(
   xFirstEnemy,
   yFirstEnemy,
   xSecondEnemy,

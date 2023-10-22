@@ -131,27 +131,7 @@ async function startAction(boardId, nameBot, tokenBot) {
       var run = "";
       var location = null;
 
-      //neu coins ===5 ve nha.
-      if (coins === 5) {
-        location = { x: xBase, y: yBase, point: 0 };
-      } else if (coins > 0 && coins < 5) {
-        ArrCoins.push({ x: xBase, y: yBase, point: 0 });
-        var hasFlag =
-          response.data.gameObjects.find(
-            (item) => item.type === "ResetButtonGameObject"
-          ) !== undefined;
-        if (hasFlag) {
-          ArrCoins.push({ x: 7, y: 7, point: 0 });
-        }
-        location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
-      } else {
-        location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
-      }
-      var start = { x: xBot, y: yBot, point: currentBotInfo.properties.coins };
-      var end = location;
-
-      // HANDLE TWO ENEMY IN HOME
-
+      // HANDLE TWO ENEMY IN BASE
       if (
         scout.checkTwoEnemyInTwoBase(
           firstEnemyBotInfo.position.x,
@@ -171,9 +151,9 @@ async function startAction(boardId, nameBot, tokenBot) {
             firstEnemyBotInfo.properties.base.x,
             firstEnemyBotInfo.properties.base.y
           );
-          logger.info(`${nameBot} move ${run}`);
+          logger.info(`${nameBot} handle two enemy in two base, move ${run}`);
+          move(tokenBot, run);
           setTimeout(() => {
-            move(tokenBot, run);
             startAction(boardId, nameBot, tokenBot);
           }, 800);
         }
@@ -184,7 +164,7 @@ async function startAction(boardId, nameBot, tokenBot) {
             secondEnemyBotInfo.properties.base.x,
             secondEnemyBotInfo.properties.base.y
           );
-          logger.info(`${nameBot} move ${run}`);
+          logger.info(`${nameBot} handle two enemy in two base, move ${run}`);
           setTimeout(() => {
             move(tokenBot, run);
             startAction(boardId, nameBot, tokenBot);
@@ -209,9 +189,27 @@ async function startAction(boardId, nameBot, tokenBot) {
       ) {
         run = handle(xBot, yBot, baseOfTeammateBot.x, baseOfTeammateBot.y);
         setTimeout(() => {
+          logger.info(`${nameBot} handle enemy in base, move ${run}`);
           move(tokenBot, run);
           startAction(boardId, nameBot, tokenBot);
         }, 800);
+      }
+
+       //neu coins ===5 ve nha.
+       if (coins === 5) {
+        location = { x: xBase, y: yBase, point: 0 };
+      } else if (coins > 0 && coins < 5) {
+        ArrCoins.push({ x: xBase, y: yBase, point: 0 });
+        var hasFlag =
+          response.data.gameObjects.find(
+            (item) => item.type === "ResetButtonGameObject"
+          ) !== undefined;
+        if (hasFlag) {
+          ArrCoins.push({ x: 7, y: 7, point: 0 });
+        }
+        location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
+      } else {
+        location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
       }
 
       // kiem tra toa do do co phai la dich hay khong
@@ -239,13 +237,14 @@ async function startAction(boardId, nameBot, tokenBot) {
       run = handle(xBot, yBot, location.x, location.y);
       if (run !== null) {
         setTimeout(() => {
+          logger.info(`${nameBot} move ${run}`);
           move(tokenBot, run);
           startAction(boardId, nameBot, tokenBot);
         }, 800);
       } else {
         setTimeout(() => {
           startAction(boardId, nameBot, tokenBot);
-        }, 100);
+        }, 800);
       }
     })
     .catch((error) => {
@@ -293,8 +292,6 @@ function handle(x, y, xGo, yGo) {
     return "UP";
   } else if (y < yGo) {
     return "DOWN";
-  } else {
-    return "";
   }
 }
 
