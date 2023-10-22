@@ -153,9 +153,12 @@ async function startAction(boardId, nameBot, tokenBot) {
             currentBotInfo.properties.base.y
           )
         ) {
-          location={x:baseOfTeammateBot.x, y: baseOfTeammateBot.y, point :0}
+          logger.info(`co bot`);
+          location={x:teammateBotInfo.properties.base.x + 1 , 
+            y: teammateBotInfo.properties.base.y, point :0};
         }
         else{
+          logger.info(`dung im ${nameBot} `);
           location = { x: xBase, y: yBase, point: 0 };
         }
       } 
@@ -196,11 +199,12 @@ async function startAction(boardId, nameBot, tokenBot) {
           break;
         }
       }
+      logger.info(`${nameBot} move ${location.x } , ${location.y }`);
       run = handle(xBot, yBot, location.x, location.y);
       if (run !== null) {
+        setTimeout(() => {
         move(tokenBot, run);
         logger.info(`${nameBot} move ${run}`);
-        setTimeout(() => {
           startAction(boardId, nameBot, tokenBot);
         }, 800);
       } else {
@@ -257,58 +261,6 @@ function handle(x, y, xGo, yGo) {
   }
 }
 
-async function handleTwoEnemyInTwoBase(
-  tokenBot,
-  nameBot,
-  currentBotInfo,
-  firstEnemyBotInfo,
-  secondEnemyBotInfo
-) {
-  if (currentBotInfo.properties.name === "Mầm-01") {
-    var run = handle(
-      currentBotInfo.position.x,
-      currentBotInfo.position.y,
-      firstEnemyBotInfo.properties.base.x,
-      firstEnemyBotInfo.properties.base.y
-    );
-    move(tokenBot, run);
-    logger.info(`${nameBot} move ${run}`);
-    setTimeout(() => {
-      startAction(boardId, nameBot, tokenBot);
-    }, 1000);
-  }
-  if (currentBotInfo.properties.name === "Mầm-02") {
-    var run = handle(
-      currentBotInfo.position.x,
-      currentBotInfo.position.y,
-      secondEnemyBotInfo.properties.base.x,
-      secondEnemyBotInfo.properties.base.y
-    );
-    move(tokenBot, run);
-    logger.info(`${nameBot} move ${run}`);
-    setTimeout(() => {
-      startAction(boardId, nameBot, tokenBot);
-    }, 1000);
-  }
-}
 
-async function handleOneEnemyInCurrentBase(
-  tokenBot,
-  nameBot,
-  currentBotInfo,
-  teammateBotInfo
-) {
-  var run = handle(
-    currentBotInfo.position.x,
-    currentBotInfo.position.y,
-    teammateBotInfo.properties.base.x,
-    teammateBotInfo.properties.base.y
-  );
-  move(tokenBot, run);
-  logger.info(`${nameBot} move ${run}`);
-  setTimeout(() => {
-    startAction(boardId, nameBot, tokenBot);
-  }, 1000);
-}
 
 
