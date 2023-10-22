@@ -98,7 +98,7 @@ async function getCoinObjectInfo(response) {
     point: coin.properties.points,
   }));
 
-  return {coinObject: coinObject, arrCoins: arrCoins};
+  return { coinObject: coinObject, arrCoins: arrCoins };
 }
 
 /**
@@ -211,3 +211,29 @@ export default {
   checkEnemyInBase,
   checkTwoEnemyInTwoBase,
 };
+
+/**
+ * Function check teammate in base.
+ *
+ * @param {number} xEnemy
+ * @param {number} yEnemy
+ * @param {number} xBase
+ * @param {number} yBase
+ * @return {boolean}
+ */
+function checkTeammateInCurrentBase(xTeammate, yTeammate, xCurrentBase, yCurrentBase) {
+  const coordinateSurroundBase = getSurroundingCoordinates(
+    xCurrentBase,
+    yCurrentBase
+  );
+
+  const result = coordinateSurroundBase.find(
+    ({ x, y }) => x === xTeammate && y === yTeammate
+  );
+
+  if (result === undefined) {
+    return false;
+  }
+
+  return true;
+}
