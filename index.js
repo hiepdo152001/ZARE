@@ -2,6 +2,7 @@ import axios from "axios";
 import Config from "./config.js";
 import { logger } from "./logger.js";
 import scout from "./scout.js";
+import  Queue  from 'queue-fifo';
 
 const baseApiUrl = Config.BASE_API_URL;
 
@@ -131,10 +132,6 @@ async function startAction(boardId, nameBot, tokenBot) {
       var run = "";
       var location = null;
 
-      // HANDLE TWO ENEMY IN BASE
-     
-
-      // HANDLE CHECK ENEMY IN CURRENT BASE
      
 
        //neu coins ===5 ve nha.
@@ -172,11 +169,48 @@ async function startAction(boardId, nameBot, tokenBot) {
           ArrCoins.push({ x: 7, y: 7, point: 0 });
         }
         location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
+        if(location.x=== xBase && location.y ===  yBase ){
+          if (
+            scout.checkEnemyInBase(
+              firstEnemyBotInfo.position.x,
+              firstEnemyBotInfo.position.y,
+              currentBotInfo.properties.base.x,
+              currentBotInfo.properties.base.y
+            ) ||
+            scout.checkEnemyInBase(
+              secondEnemyBotInfo.position.x,
+              secondEnemyBotInfo.position.y,
+              currentBotInfo.properties.base.x,
+              currentBotInfo.properties.base.y
+            )
+          ) {
+            logger.info(`co bot`);
+            // di chuyen vao nha ban
+            location={x:teammateBotInfo.properties.base.x + 1 , 
+              y: teammateBotInfo.properties.base.y, point :0};
+          }
+        }
+        // neu ban minh gan nha minh
+        if(scout.checkTeammateInCurrentBase(
+          teammateBotInfo.position.x, teammateBotInfo.position.y,
+          currentBotInfo.properties.base.x, currentBotInfo.properties.base.y
+          )){
+            location = {x:currentBotInfo.properties.base.x,y: currentBotInfo.properties.base.y,point:0}
+          }
+         
       } 
       else {
         location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
+        if(scout.checkTeammateInCurrentBase(
+          teammateBotInfo.position.x, teammateBotInfo.position.y,
+          currentBotInfo.properties.base.x, currentBotInfo.properties.base.y
+          )){
+            location = {x:teammateBotInfo.position.x,y: teammateBotInfo.position.y,point:0}
+          }
       }
-
+      var ArrEnemy=[];
+      ArrEnemy.push({x:firstEnemyBotInfo.position.x,y: firstEnemyBotInfo.position.y, point: firstEnemyBotInfo.properties.coins},
+        {x:secondEnemyBotInfo.position.x,y: secondEnemyBotInfo.position.y, point: secondEnemyBotInfo.properties.coins})
       // kiem tra toa do do co phai la dich hay khong
       for (const enemy of enemiesBotInfo) {
         // bot lien ke voi minh thi tien hanh chien
@@ -261,46 +295,7 @@ function handle(x, y, xGo, yGo) {
     return "DOWN";
   }
 }
-function bfs(start, end, ArrEnemy) {
-  ArrEnemy.push({ x: baseOfTeammateBot.properties.base.x, y: baseOfTeammateBot.properties.base.y, point: 0 });
-  const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-  const rows = 15;
-  const cols = 15;
-  const visited = new Array(rows).fill().map(() => new Array(cols).fill(false));
-  const queue = new Queue();
 
-  queue.enqueue({ current: start, path: [] });
-
-  while (!queue.isEmpty()) {
-      const { current, path } = queue.dequeue();
-      const { x, y, point } = current;
-
-      if (x === end.x && y === end.y) {
-
-          return path; // Tìm thấy đường đi, trả về nó
-      }
-
-      for (const [dx, dy] of directions) {
-          const new_x = x + dx;
-          const new_y = y + dy;
-          if (new_x >= 0 && new_x < rows && new_y >= 0 && new_y < cols && !visited[new_x][new_y]) {
-              if (ArrEnemy.some(enemy => enemy.x === new_x && enemy.y === new_y)) {
-                  if (start.point < 1) {
-                      visited[new_x][new_y] = true;
-                      const new_path = [...path, { x: new_x, y: new_y, point: 0 }];
-                      queue.enqueue({ current: { x: new_x, y: new_y, point: 0 }, path: new_path });
-                  }
-              } else {
-                  visited[new_x][new_y] = true;
-                  const new_path = [...path, { x: new_x, y: new_y, point }];
-                  queue.enqueue({ current: { x: new_x, y: new_y, point }, path: new_path });
-              }
-          }
-      }
-  }
-
-  return null; // Không tìm thấy đường đi
-}
 
 
 
