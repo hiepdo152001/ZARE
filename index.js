@@ -132,73 +132,34 @@ async function startAction(boardId, nameBot, tokenBot) {
       var location = null;
 
       // HANDLE TWO ENEMY IN BASE
-      if (
-        scout.checkTwoEnemyInTwoBase(
-          firstEnemyBotInfo.position.x,
-          firstEnemyBotInfo.position.y,
-          secondEnemyBotInfo.position.x,
-          secondEnemyBotInfo.position.y,
-          currentBotInfo.properties.base.x,
-          currentBotInfo.properties.base.y,
-          teammateBotInfo.properties.base.x,
-          teammateBotInfo.properties.base.y
-        )
-      ) {
-        if (currentBotInfo.properties.name === "Mầm-01") {
-          var run = handle(
-            currentBotInfo.position.x,
-            currentBotInfo.position.y,
-            firstEnemyBotInfo.properties.base.x,
-            firstEnemyBotInfo.properties.base.y
-          );
-          logger.info(`${nameBot} handle two enemy in two base, move ${run}`);
-          move(tokenBot, run);
-          setTimeout(() => {
-            startAction(boardId, nameBot, tokenBot);
-          }, 800);
-        }
-        if (currentBotInfo.properties.name === "Mầm-02") {
-          var run = handle(
-            currentBotInfo.position.x,
-            currentBotInfo.position.y,
-            secondEnemyBotInfo.properties.base.x,
-            secondEnemyBotInfo.properties.base.y
-          );
-          logger.info(`${nameBot} handle two enemy in two base, move ${run}`);
-          setTimeout(() => {
-            move(tokenBot, run);
-            startAction(boardId, nameBot, tokenBot);
-          }, 800);
-        }
-      }
+     
 
       // HANDLE CHECK ENEMY IN CURRENT BASE
-      if (
-        scout.checkEnemyInBase(
-          firstEnemyBotInfo.position.x,
-          firstEnemyBotInfo.position.y,
-          currentBotInfo.properties.base.x,
-          currentBotInfo.properties.base.y
-        ) ||
-        scout.checkEnemyInBase(
-          secondEnemyBotInfo.position.x,
-          secondEnemyBotInfo.position.y,
-          currentBotInfo.properties.base.x,
-          currentBotInfo.properties.base.y
-        )
-      ) {
-        run = handle(xBot, yBot, baseOfTeammateBot.x, baseOfTeammateBot.y);
-        setTimeout(() => {
-          logger.info(`${nameBot} handle enemy in base, move ${run}`);
-          move(tokenBot, run);
-          startAction(boardId, nameBot, tokenBot);
-        }, 800);
-      }
+     
 
        //neu coins ===5 ve nha.
        if (coins === 5) {
-        location = { x: xBase, y: yBase, point: 0 };
-      } else if (coins > 0 && coins < 5) {
+        if (
+          scout.checkEnemyInBase(
+            firstEnemyBotInfo.position.x,
+            firstEnemyBotInfo.position.y,
+            currentBotInfo.properties.base.x,
+            currentBotInfo.properties.base.y
+          ) ||
+          scout.checkEnemyInBase(
+            secondEnemyBotInfo.position.x,
+            secondEnemyBotInfo.position.y,
+            currentBotInfo.properties.base.x,
+            currentBotInfo.properties.base.y
+          )
+        ) {
+          location={x:baseOfTeammateBot.x, y: baseOfTeammateBot.y, point :0}
+        }
+        else{
+          location = { x: xBase, y: yBase, point: 0 };
+        }
+      } 
+      else if (coins > 0 && coins < 5) {
         ArrCoins.push({ x: xBase, y: yBase, point: 0 });
         var hasFlag =
           response.data.gameObjects.find(
@@ -208,7 +169,8 @@ async function startAction(boardId, nameBot, tokenBot) {
           ArrCoins.push({ x: 7, y: 7, point: 0 });
         }
         location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
-      } else {
+      } 
+      else {
         location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
       }
 
@@ -227,8 +189,8 @@ async function startAction(boardId, nameBot, tokenBot) {
 
         // kiem tra toa do bot de ne
         else if (
-          Math.abs(location.x - enemy.x) <= 1 &&
-          Math.abs(location.y - enemy.y) <= 1
+          Math.abs(location.x - enemy.x) <= 2 &&
+          Math.abs(location.y - enemy.y) <= 2
         ) {
           location = { x: xBot, y: yBot };
           break;
@@ -236,15 +198,15 @@ async function startAction(boardId, nameBot, tokenBot) {
       }
       run = handle(xBot, yBot, location.x, location.y);
       if (run !== null) {
+        move(tokenBot, run);
+        logger.info(`${nameBot} move ${run}`);
         setTimeout(() => {
-          logger.info(`${nameBot} move ${run}`);
-          move(tokenBot, run);
           startAction(boardId, nameBot, tokenBot);
         }, 800);
       } else {
         setTimeout(() => {
           startAction(boardId, nameBot, tokenBot);
-        }, 800);
+        }, 100);
       }
     })
     .catch((error) => {
@@ -348,3 +310,5 @@ async function handleOneEnemyInCurrentBase(
     startAction(boardId, nameBot, tokenBot);
   }, 1000);
 }
+
+
