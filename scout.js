@@ -98,7 +98,7 @@ async function getCoinObjectInfo(response) {
     point: coin.properties.points,
   }));
 
-  return arrCoins;
+  return {coinObject: coinObject, arrCoins: arrCoins};
 }
 
 /**

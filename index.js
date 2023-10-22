@@ -118,97 +118,79 @@ async function startAction(boardId, nameBot, tokenBot) {
 
       // logger.info(JSON.stringify(enemiesBotInfo));
 
-      // TEST CASE
-      // if (Config.TEST_MODE === true) {
-      //   if (nameBot === "Mầm-01") {
-      //     var run = handle(
-      //       currentBotInfo.position.x,
-      //       currentBotInfo.position.y,
-      //       4,
-      //       14
-      //     );
-      //     /** move */
-      //     move(tokenBot, run);
-      //     logger.info(`${nameBot} move ${run}`);
-      //     setTimeout(() => {
-      //       startAction(boardId, nameBot, tokenBot);
-      //     }, 1000);
-      //   }
+      coinGames = coinObjectData.coinObject;
+      var ArrCoins = coinObjectData.arrCoins;
+      // point home me
+      var xBase = baseOfCurrentBot.position.x;
+      var yBase = baseOfCurrentBot.position.y;
+      // point bot me
+      var xBot = currentBotInfo.position.x;
+      var yBot = currentBotInfo.position.y;
+      // coins me
+      var coins = currentBotInfo.properties.coins;
+      var run = "";
+      var location = null;
 
-      //   if (nameBot === "Mầm-02") {
-      //     var run = handle(
-      //       currentBotInfo.position.x,
-      //       currentBotInfo.position.y,
-      //       5,
-      //       1
-      //     );
-      //     /** move */
-      //     move(tokenBot, run);
-      //     logger.info(`${nameBot} move ${run}`);
-      //     setTimeout(() => {
-      //       startAction(boardId, nameBot, tokenBot);
-      //     }, 1000);
-      //   }
-
-      //   if (nameBot === "[Test] Mầm-01") {
-      //     var targetEnemy = enemiesBotInfo.find(
-      //       ({ properties }) => properties.name === "Mầm-02"
-      //     );
-      //     var run = handle(
-      //       currentBotInfo.position.x,
-      //       currentBotInfo.position.y,
-      //       targetEnemy.properties.base.x,
-      //       targetEnemy.properties.base.y
-      //     );
-      //     /** move */
-      //     move(tokenBot, run);
-      //     logger.info(`${nameBot} move ${run}`);
-      //     setTimeout(() => {
-      //       startAction(boardId, nameBot, tokenBot);
-      //     }, 1000);
-      //   }
-
-      //   // if (nameBot === "[Test] Mầm-02") {
-      //   //   var targetEnemy = enemiesBotInfo.find(
-      //   //     ({ properties }) => properties.name === "Mầm-01"
-      //   //   );
-      //   //   var run = handle(
-      //   //     currentBotInfo.position.x,
-      //   //     currentBotInfo.position.y,
-      //   //     targetEnemy.properties.base.x,
-      //   //     targetEnemy.properties.base.y
-      //   //   );
-      //   //   /** move */
-      //   //   move(tokenBot, run);
-      //   //   logger.info(`${nameBot} move ${run}`);
-      //   //   setTimeout(() => {
-      //   //     startAction(boardId, nameBot, tokenBot);
-      //   //   }, 1000);
-      //   // }
-      // }
+      //neu coins ===5 ve nha.
+      if (coins === 5) {
+        location = { x: xBase, y: yBase, point: 0 };
+      } else if (coins > 0 && coins < 5) {
+        ArrCoins.push({ x: xBase, y: yBase, point: 0 });
+        var hasFlag =
+          response.data.gameObjects.find(
+            (item) => item.type === "ResetButtonGameObject"
+          ) !== undefined;
+        if (hasFlag) {
+          ArrCoins.push({ x: 7, y: 7, point: 0 });
+        }
+        location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
+      } else {
+        location = neighbor(xBot, yBot, xBase, yBase, ArrCoins, coins);
+      }
+      var start = { x: xBot, y: yBot, point: currentBotInfo.properties.coins };
+      var end = location;
 
       // HANDLE TWO ENEMY IN HOME
 
-      // if (
-      //   scout.checkTwoEnemyInTwoBase(
-      //     firstEnemyBotInfo.position.x,
-      //     firstEnemyBotInfo.position.y,
-      //     secondEnemyBotInfo.position.x,
-      //     secondEnemyBotInfo.position.y,
-      //     currentBotInfo.properties.base.x,
-      //     currentBotInfo.properties.base.y,
-      //     teammateBotInfo.properties.base.x,
-      //     teammateBotInfo.properties.base.y
-      //   )
-      // ) {
-      //   await handleTwoEnemyInTwoBase(
-      //     tokenBot,
-      //     nameBot,
-      //     currentBotInfo,
-      //     firstEnemyBotInfo,
-      //     secondEnemyBotInfo
-      //   );
-      // }
+      if (
+        scout.checkTwoEnemyInTwoBase(
+          firstEnemyBotInfo.position.x,
+          firstEnemyBotInfo.position.y,
+          secondEnemyBotInfo.position.x,
+          secondEnemyBotInfo.position.y,
+          currentBotInfo.properties.base.x,
+          currentBotInfo.properties.base.y,
+          teammateBotInfo.properties.base.x,
+          teammateBotInfo.properties.base.y
+        )
+      ) {
+        if (currentBotInfo.properties.name === "Mầm-01") {
+          var run = handle(
+            currentBotInfo.position.x,
+            currentBotInfo.position.y,
+            firstEnemyBotInfo.properties.base.x,
+            firstEnemyBotInfo.properties.base.y
+          );
+          logger.info(`${nameBot} move ${run}`);
+          setTimeout(() => {
+            move(tokenBot, run);
+            startAction(boardId, nameBot, tokenBot);
+          }, 800);
+        }
+        if (currentBotInfo.properties.name === "Mầm-02") {
+          var run = handle(
+            currentBotInfo.position.x,
+            currentBotInfo.position.y,
+            secondEnemyBotInfo.properties.base.x,
+            secondEnemyBotInfo.properties.base.y
+          );
+          logger.info(`${nameBot} move ${run}`);
+          setTimeout(() => {
+            move(tokenBot, run);
+            startAction(boardId, nameBot, tokenBot);
+          }, 800);
+        }
+      }
 
       // HANDLE CHECK ENEMY IN CURRENT BASE
       if (
@@ -225,12 +207,45 @@ async function startAction(boardId, nameBot, tokenBot) {
           currentBotInfo.properties.base.y
         )
       ) {
-        await handleOneEnemyInCurrentBase(
-          tokenBot,
-          nameBot,
-          currentBotInfo,
-          teammateBotInfo
-        );
+        run = handle(xBot, yBot, baseOfTeammateBot.x, baseOfTeammateBot.y);
+        setTimeout(() => {
+          move(tokenBot, run);
+          startAction(boardId, nameBot, tokenBot);
+        }, 800);
+      }
+
+      // kiem tra toa do do co phai la dich hay khong
+      for (const enemy of enemiesBotInfo) {
+        // bot lien ke voi minh thi tien hanh chien
+        if (
+          (Math.abs(xBot - enemy.x) === 1 && yBot === enemy.y) ||
+          (Math.abs(yBot - enemy.y) === 1 && xBot === enemy.x)
+        ) {
+          if (coins < enemy.point) {
+            location = enemy;
+            break;
+          }
+        }
+
+        // kiem tra toa do bot de ne
+        else if (
+          Math.abs(location.x - enemy.x) <= 1 &&
+          Math.abs(location.y - enemy.y) <= 1
+        ) {
+          location = { x: xBot, y: yBot };
+          break;
+        }
+      }
+      run = handle(xBot, yBot, location.x, location.y);
+      if (run !== null) {
+        setTimeout(() => {
+          move(tokenBot, run);
+          startAction(boardId, nameBot, tokenBot);
+        }, 800);
+      } else {
+        setTimeout(() => {
+          startAction(boardId, nameBot, tokenBot);
+        }, 100);
       }
     })
     .catch((error) => {
@@ -251,6 +266,24 @@ function move(token, direction) {
     });
 }
 
+function neighbor(x, y, xBase, yBase, coinGames, coins) {
+  let closestDistance = Number.MAX_VALUE;
+  let closestPoint = null;
+  for (const coinGame of coinGames) {
+    if (coinGame.point + coins <= 5) {
+      const distance = Math.sqrt((x - coinGame.x) ** 2 + (y - coinGame.y) ** 2);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestPoint = coinGame;
+      }
+    }
+  }
+  if (closestPoint == null) {
+    return { x: xBase, y: yBase, point: 0 };
+  }
+  return closestPoint;
+}
+
 function handle(x, y, xGo, yGo) {
   if (x > xGo) {
     return "LEFT";
@@ -260,6 +293,8 @@ function handle(x, y, xGo, yGo) {
     return "UP";
   } else if (y < yGo) {
     return "DOWN";
+  } else {
+    return "";
   }
 }
 
