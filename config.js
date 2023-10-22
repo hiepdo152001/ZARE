@@ -17,7 +17,7 @@ const CHECK_START_GAME = false;
 /**
  * SET TRUE WHEN NEED ENABLE BOT TEST
  */
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 /**
  * --------------------------------------

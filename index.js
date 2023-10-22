@@ -200,6 +200,7 @@ async function startAction(boardId, nameBot, tokenBot) {
         }
       }
       logger.info(`${nameBot} move ${location.x } , ${location.y }`);
+      
       run = handle(xBot, yBot, location.x, location.y);
       if (run !== null) {
         setTimeout(() => {
@@ -260,7 +261,46 @@ function handle(x, y, xGo, yGo) {
     return "DOWN";
   }
 }
+function bfs(start, end, ArrEnemy) {
+  ArrEnemy.push({ x: baseOfTeammateBot.properties.base.x, y: baseOfTeammateBot.properties.base.y, point: 0 });
+  const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const rows = 15;
+  const cols = 15;
+  const visited = new Array(rows).fill().map(() => new Array(cols).fill(false));
+  const queue = new Queue();
 
+  queue.enqueue({ current: start, path: [] });
+
+  while (!queue.isEmpty()) {
+      const { current, path } = queue.dequeue();
+      const { x, y, point } = current;
+
+      if (x === end.x && y === end.y) {
+
+          return path; // Tìm thấy đường đi, trả về nó
+      }
+
+      for (const [dx, dy] of directions) {
+          const new_x = x + dx;
+          const new_y = y + dy;
+          if (new_x >= 0 && new_x < rows && new_y >= 0 && new_y < cols && !visited[new_x][new_y]) {
+              if (ArrEnemy.some(enemy => enemy.x === new_x && enemy.y === new_y)) {
+                  if (start.point < 1) {
+                      visited[new_x][new_y] = true;
+                      const new_path = [...path, { x: new_x, y: new_y, point: 0 }];
+                      queue.enqueue({ current: { x: new_x, y: new_y, point: 0 }, path: new_path });
+                  }
+              } else {
+                  visited[new_x][new_y] = true;
+                  const new_path = [...path, { x: new_x, y: new_y, point }];
+                  queue.enqueue({ current: { x: new_x, y: new_y, point }, path: new_path });
+              }
+          }
+      }
+  }
+
+  return null; // Không tìm thấy đường đi
+}
 
 
 
