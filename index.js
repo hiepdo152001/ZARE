@@ -2,7 +2,6 @@ import axios from "axios";
 import Config from "./config.js";
 import { logger } from "./logger.js";
 import scout from "./scout.js";
-import  Queue  from 'queue-fifo';
 
 const baseApiUrl = Config.BASE_API_URL;
 
@@ -11,7 +10,6 @@ const datas = {
   boardId: boardId,
 };
 
-var profile = [];
 var coinGames = [];
 
 main();
@@ -20,43 +18,31 @@ main();
  * Function main.
  */
 async function main() {
-  const gameStarted = await checkStartGame(Config.CHECK_START_GAME);
-
-  if (gameStarted === true) {
-    await joinBoard(datas, Config.NAME_BOT1, Config.TOKEN_BOT1);
-    await joinBoard(datas, Config.NAME_BOT2, Config.TOKEN_BOT2);
-
-    if (Config.TEST_MODE === true) {
-      await joinBoard(datas, Config.NAME_BOT_TEST1, Config.TOKEN_BOT_TEST1);
-      await joinBoard(datas, Config.NAME_BOT_TEST2, Config.TOKEN_BOT_TEST2);
+  let isStart = false;
+  while (!isStart) {
+    try {
+      const response = await axios.get(`${baseApiUrl}/boards/${boardId}`);
+      logger.info(response.data.isStarted);
+      // if (response.data.isStarted) {
+        if (response.data) {
+        isStart = true;
+      } else {
+        await sleep(300); 
+      }
+    } catch (error) {
+      console.error('Lỗi :', error);
+      await sleep(300); 
     }
   }
+  await joinBoard(datas, Config.NAME_BOT1, Config.TOKEN_BOT1);
+  await joinBoard(datas, Config.NAME_BOT2, Config.TOKEN_BOT2);
+} 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
-/**
- * Function check start game.
- *
- * @param {boolean} needCheck
- * @return {boolean}
- */
-async function checkStartGame(needCheck) {
-  if (needCheck === false) {
-    logger.info("GAME START !!!");
-    return true;
-  }
-
-  var response = false;
-  var setIntervalCheck = setInterval(() => {
-    // call api check start game
-    logger.warn("GAME NOT START"); // if game is not start, log and call api
-    // response = true; // if game is start, set response is true
-    if (response == true) {
-      clearInterval(setIntervalCheck);
-      logger.info("GAME START !!!");
-      return true;
-    }
-  }, 200);
-}
 
 /**
  * Function join game board.
@@ -254,7 +240,7 @@ async function startAction(boardId, nameBot, tokenBot) {
 }
 
 function move(token, direction) {
-  const Url = "https://api-zarena.zinza.com.vn/api/bots/" + token + "/move";
+  const Url = `${baseApiUrl}/bots/${token}/move`;
 
   axios
     .post(Url, { direction })
