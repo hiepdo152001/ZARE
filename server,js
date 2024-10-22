@@ -1,0 +1,231 @@
+const { io } = require('socket.io-client');
+require('dotenv').config();
+main();
+
+async function main() {
+    const SOCKET_SERVER_ADDR = process.env.SOCKET_SERVER_ADDR;
+    const auth = {
+        token: process.env.TOKEN, 
+    };
+
+    const socket = io(SOCKET_SERVER_ADDR, {
+        auth: auth,
+    });
+
+    socket.on('connect', () => {
+        socket.emit('join', {});
+        socket.on('user', (data) => {
+            console.log('User data received:', data);
+            startMovementToNearestTank(socket, data);
+        });
+    });
+}
+
+// Hàm di chuyển bot đến vị trí tank gần nhất
+async function startMovementToNearestTank(socket, data) {
+    setInterval(async () => {
+        const botPosition = getBotPosition(data.tanks, 'Bedau');
+        if (botPosition) {
+            // Gọi hàm di chuyển tới tank gần nhất
+            await moveToNearestTank(socket, botPosition, data.tanks, data.map);
+        }
+    }, 340);
+}
+
+// Node đại diện cho một ô trên bản đồ
+class Node {
+    constructor(position, parent = null) {
+        this.position = position; // vị trí (x, y)
+        this.parent = parent; // nút cha (để truy xuất đường đi sau này)
+        this.g = 0; // chi phí từ điểm bắt đầu
+        this.h = 0; // chi phí ước tính đến đích
+        this.f = 0; // tổng chi phí g + h
+    }
+}
+
+// Hàm Heuristic (khoảng cách Manhattan)
+function heuristic(pointA, pointB) {
+    return Math.abs(pointA.x - pointB.x) + Math.abs(pointA.y - pointB.y);
+}
+
+// Hàm tìm đường ngắn nhất bằng A* từ start tới goal
+function aStar(start, goal, map) {
+    const openList = [];
+    const closedList = [];
+    
+    const startNode = new Node(start);
+    const goalNode = new Node(goal);
+    
+    openList.push(startNode);
+
+    while (openList.length > 0) {
+        // Lấy node có F thấp nhất
+        openList.sort((nodeA, nodeB) => nodeA.f - nodeB.f);
+        const currentNode = openList.shift();
+        closedList.push(currentNode);
+
+        // Nếu đã đến đích
+        if (currentNode.position.x === goalNode.position.x && currentNode.position.y === goalNode.position.y) {
+            const path = [];
+            let current = currentNode;
+            while (current) {
+                path.push(current.position);
+                current = current.parent;
+            }
+            return path.reverse(); // Trả về đường đi từ start đến goal
+        }
+
+        // Lấy các điểm lân cận
+        const neighbors = getNeighbors(currentNode, map);
+
+        for (const neighbor of neighbors) {
+            if (closedList.find(node => node.position.x === neighbor.position.x && node.position.y === neighbor.position.y)) {
+                continue; // Nếu đã kiểm tra, bỏ qua
+            }
+
+            neighbor.g = currentNode.g + 1;
+            neighbor.h = heuristic(neighbor.position, goalNode.position);
+            neighbor.f = neighbor.g + neighbor.h;
+
+            // Nếu đã trong open list, cập nhật nếu cần
+            const openNode = openList.find(node => node.position.x === neighbor.position.x && node.position.y === neighbor.position.y);
+            if (!openNode || neighbor.g < openNode.g) {
+                openList.push(neighbor);
+            }
+        }
+    }
+
+    return []; // Không tìm thấy đường đi
+}
+
+// Hàm lấy các điểm lân cận của một node (4 hướng)
+function getNeighbors(node, map) {
+    const neighbors = [];
+    const { x, y } = node.position;
+
+    const directions = [
+        { x: 0, y: -1 }, // Lên
+        { x: 0, y: 1 },  // Xuống
+        { x: -1, y: 0 }, // Trái
+        { x: 1, y: 0 },  // Phải
+    ];
+
+    for (const direction of directions) {
+        const newX = x + direction.x;
+        const newY = y + direction.y;
+
+        if (newX >= 0 && newX < map[0].length && newY >= 0 && newY < map.length) {
+            if (!isObstacle({ x: newX, y: newY }, map)) {
+                neighbors.push(new Node({ x: newX, y: newY }, node));
+            }
+        }
+    }
+
+    return neighbors;
+}
+
+// Hàm kiểm tra xem có vật cản không
+function isObstacle(position, map) {
+    const obstacleTypes = ['B', 'W', 'T']; // Brick, Water, Tree
+    const { x, y } = position;
+
+    // Kiểm tra giới hạn bản đồ
+    if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) {
+        return true; // Nếu nằm ngoài giới hạn, coi như là vật cản
+    }
+
+    const cellValue = map[y][x];
+    return obstacleTypes.includes(cellValue); // Kiểm tra loại vật cản
+}
+
+// Hàm di chuyển bot đến vị trí tank gần nhất
+async function moveToNearestTank(socket, botPosition, tanks, map) {
+    // Tìm tank gần nhất
+    let nearestTank = null;
+    let minDistance = Infinity;
+    
+    for (const tank of tanks) {
+        if (tank.name !== 'Bedau' && tank.isAlive) {
+            const distance = calculateDistance(botPosition, { x: tank.x, y: tank.y });
+            if (distance < minDistance) {
+                nearestTank = tank;
+                minDistance = distance;
+            }
+        }
+    }
+
+    if (nearestTank) {
+        const goal = { x: nearestTank.x, y: nearestTank.y };
+        const path = aStar(botPosition, goal, map); // Tìm đường đi từ bot đến tank
+
+        if (path.length > 0) {
+            // Di chuyển bot dọc theo đường đi
+            for (let i = 1; i < path.length; i++) {
+                const nextMove = path[i];
+                if (nextMove.x < botPosition.x) {
+                    move(socket, 'LEFT');
+                } else if (nextMove.x > botPosition.x) {
+                    move(socket, 'RIGHT');
+                } else if (nextMove.y < botPosition.y) {
+                    move(socket, 'UP');
+                } else if (nextMove.y > botPosition.y) {
+                    move(socket, 'DOWN');
+                }
+                botPosition = nextMove; // Cập nhật vị trí bot
+                await new Promise(resolve => setTimeout(resolve, 17)); // Chờ 17ms trước khi di chuyển tiếp
+            }
+        }
+    }
+}
+
+// Hàm kiểm tra xem có thể bắn vào tank không
+async function checkAndShoot(socket, position, tanks, map) {
+    let nearestTank = null;
+    let minDistance = Infinity;
+    
+    for (const tank of tanks) {
+        if (tank.name !== 'Bedau' && tank.isAlive) {
+            const distance = calculateDistance(position, { x: tank.x, y: tank.y });
+            if (distance < minDistance) {
+                nearestTank = tank;
+                minDistance = distance;
+            }
+        }
+    }
+
+    if (nearestTank) {
+        const targetPosition = { x: nearestTank.x, y: nearestTank.y };
+        if (canShoot(position, targetPosition, map)) {
+            shoot(socket); // Gọi hàm bắn
+        }
+    }
+}
+
+// Hàm tính khoảng cách giữa 2 điểm
+function calculateDistance(point1, point2) {
+    return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
+}
+
+// Kiểm tra xem có thể bắn vào tank không
+function canShoot(position, targetPosition, map) {
+    return (targetPosition.x === position.x || targetPosition.y === position.y) && !isObstacle(targetPosition, map);
+}
+
+// Hàm lấy vị trí bot
+function getBotPosition(tanks, name) {
+    const bot = tanks.find(tank => tank.name === name);
+    if (bot) {
+        return { x: bot.x, y: bot.y };
+    }
+    return null; // Không tìm thấy bot
+}
+
+// Hàm di chuyển
+async function move(socket, direction) {
+    socket.emit('move', { "orient": direction });
+}
+
+// Hàm bắn
+async function shoot(socket) {
+    socket.emit('shoot', { message: 'Shoot command executed!' });
+}
